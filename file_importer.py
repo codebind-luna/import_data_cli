@@ -45,4 +45,4 @@ class FileLoader(object):
                 self.xlsx_data_import_db(input_file, db_conn)
             elif self.file_extension == '.xls':
                 self.xls_data_import_db(input_file, db_conn)
-            db_conn.close_db()
+        db_conn.close_db()
