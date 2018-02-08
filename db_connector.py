@@ -1,22 +1,21 @@
 import sqlalchemy
 from sqlalchemy import create_engine, exc
 from sqlalchemy_utils import database_exists, create_database
-import psycopg2
-import sqlite3
-import MySQLdb
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, String
+from sqlalchemy import Column, Integer, String
+
 
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = 'users'
 
-    id          =   Column(Integer, primary_key=True)
-    name        =   Column(String(36))
-    age         =   Column(Integer)
-    address     =   Column(String(36))
+    id = Column(Integer, primary_key=True)
+    name = Column(String(36))
+    age = Column(Integer)
+    address = Column(String(36))
 
 
 class DbConnector(object):
@@ -34,7 +33,8 @@ class DbConnector(object):
     def database_uri(self, val):
         db_type, db, username, password, host = val
         if db_type == 'mysql' or db_type == 'postgres':
-            self._database_uri = '{}://{}:{}@{}/{}'.format(db_type, username, password, host or 'localhost', db)
+            self._database_uri = '{}://{}:{}@{}/{}'.format(
+             db_type, username, password, host or 'localhost', db)
         elif db_type == 'sqlite':
             self._database_uri = "sqlite:///{}.db".format(db)
         else:
@@ -56,14 +56,14 @@ class DbConnector(object):
     def create_session(self):
         session = sessionmaker()
         session.configure(bind=self.engine)
-        self.s = session()
+        self.session = session()
 
-    def save_record_db(self, record):
-        self.s.add(record)
-        self.s.commit()
-
-    def close_db(self):
-        self.s.close()
-
-    def rollback_db(self):
-        self.s.rollback()
+    def save_bulk_record_db(self, record_set):
+        try:
+            self.session.bulk_save_objects(record_set)
+            self.session.commit()
+        except sqlalchemy.exc.DBAPIError:
+            print("Database operation failed due to")
+            self.session.rollback()
+        finally:
+            self.session.close()
