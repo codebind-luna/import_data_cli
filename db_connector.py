@@ -58,6 +58,10 @@ class DbConnector(object):
         session.configure(bind=self.engine)
         self.s = session()
 
+    def save_record_db(self, record):
+        self.s.add(record)
+        self.s.commit()
+
     def close_db(self):
         self.s.close()
 
