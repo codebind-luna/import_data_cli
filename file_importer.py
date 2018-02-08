@@ -12,16 +12,14 @@ class FileLoader(object):
         df = pd.read_excel(file_buffer, sheet_name='Sample-spreadsheet-file')
 
         for i in df.index:
-            record = User(**{'name' : df['Name'][i],'age' : df['Age'][i],'address' : df['Address'][i]})
-            db_conn.save_record_db(record)
+            self.import_each_record([df['Name'][i], df['Age'][i], df['Address'][i]], db_conn)
 
     def csv_data_import_db(self, file_buffer, db_conn):
         csv_data = csv.reader(file_buffer)
         next(csv_data, None)
 
         for i in csv_data:
-            record = User(**{'name' : i[0],'age' : i[1],'address' : i[2]})
-            db_conn.save_record_db(record)
+            self.import_each_record([i[j] for j in range(len(i))], db_conn)
 
     def xls_data_import_db(self, file_buffer, db_conn):
         book = xlrd.open_workbook(file_contents=file_buffer.read())
@@ -30,8 +28,10 @@ class FileLoader(object):
             sheet = book.sheet_by_index(sheet_i)
             for r in range(1, sheet.nrows):
                 cells = sheet.row_slice(rowx=r, start_colx=0, end_colx=3)
-                record = User(**{'name' : str(cells[0].value),'age' : str(cells[1].value),'address' : str(cells[2].value)})
-                db_conn.save_record_db(record)
+                self.import_each_record([str(cells[j].value) for j in range(sheet.ncols)], db_conn)
+
+    def import_each_record(self, data, db_conn):
+        db_conn.save_record_db(User(**{'name' : data[0],'age' : data[1],'address' : data[2]}))
 
     def load_data(self, db_conn):
         try:
