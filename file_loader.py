@@ -15,10 +15,10 @@ class FileLoader(object):
     def factory(path_to_file):
         filename, file_extension = os.path.splitext(path_to_file)
         try:
-            return eval(file_extension[1:].title() + "FileLoader")(
+            return globals()[file_extension[1:].title() + "FileLoader"](
              filename, file_extension
             )
-        except NameError:
+        except KeyError:
             print("File extension not supported")
             exit()
 
