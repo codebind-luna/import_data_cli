@@ -19,7 +19,7 @@ class FileLoader(object):
              filename, file_extension
             )
         except NameError:
-            print "File extension not supported"
+            print("File extension not supported")
             exit()
 
     def create_user_instance(self, data):
