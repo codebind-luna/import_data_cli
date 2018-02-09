@@ -14,12 +14,13 @@ class FileLoader(object):
     @staticmethod
     def factory(path_to_file):
         filename, file_extension = os.path.splitext(path_to_file)
-        if file_extension == ".csv":
-            return CsvFileLoader(filename, file_extension)
-        if file_extension == ".xls":
-            return XlsFileLoader(filename, file_extension)
-        if file_extension == ".xlsx":
-            return XlsxFileLoader(filename, file_extension)
+        try:
+            return eval(file_extension[1:].title() + "FileLoader")(
+             filename, file_extension
+            )
+        except NameError:
+            print "File extension not supported"
+            exit()
 
     def create_user_instance(self, data):
         return User(**{'name': data[0], 'age': data[1], 'address': data[2]})
