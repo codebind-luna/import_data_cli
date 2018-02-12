@@ -2,20 +2,7 @@ import sqlalchemy
 from sqlalchemy import create_engine, exc
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-
-
-Base = declarative_base()
-
-
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(36))
-    age = Column(Integer)
-    address = Column(String(36))
+from models import User
 
 
 class DbConnector(object):
@@ -38,7 +25,7 @@ class DbConnector(object):
         elif db_type == 'sqlite':
             self._database_uri = "sqlite:///{}.db".format(db)
         else:
-            print('Database not supported')
+            raise SystemExit('Database not supported')
 
     def database_engine(self):
         try:
@@ -46,24 +33,20 @@ class DbConnector(object):
                 create_database(self.database_uri)
             self.engine = create_engine(self.database_uri, echo=True)
         except sqlalchemy.exc.OperationalError:
-            print('Database Authentication Error')
-            exit()
+            raise SystemExit('Database authentication error')
 
     def create_table(self):
         if not self.engine.dialect.has_table(self.engine, 'users'):
-            Base.metadata.create_all(self.engine)
+            User.metadata.create_all(self.engine)
 
     def create_session(self):
-        session = sessionmaker()
-        session.configure(bind=self.engine)
-        self.session = session()
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
 
     def save_bulk_record_db(self, record_set):
         try:
             self.session.bulk_save_objects(record_set)
             self.session.commit()
         except sqlalchemy.exc.DBAPIError:
-            print("Database operation failed due to")
             self.session.rollback()
-        finally:
-            self.session.close()
+            raise SystemExit("Database operation failed due to")

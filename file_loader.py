@@ -1,6 +1,6 @@
 import os
 import csv
-from db_connector import User
+from models import User
 import xlrd
 import pandas as pd
 
