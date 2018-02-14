@@ -1,47 +1,50 @@
 import sqlalchemy
-from sqlalchemy import create_engine, exc
-from sqlalchemy_utils import database_exists, create_database
-from sqlalchemy.orm import sessionmaker
-from models import User
+import sqlalchemy_utils
+import sqlalchemy.orm
+import models
 
 
 class DbConnector(object):
-    def __init__(self, val):
-        self.database_uri = val
-        self.database_engine()
-        self.create_table()
-        self.create_session()
+    def __init__(self, db_type, db_name, host, username, password):
+        self.db_type = db_type
+        self.db_name = db_name
+        self.host = host
+        self.username = username
+        self.password = password
 
-    @property
-    def database_uri(self):
-        return self._database_uri
-
-    @database_uri.setter
-    def database_uri(self, val):
-        db_type, db, username, password, host = val
-        if db_type == 'mysql' or db_type == 'postgres':
-            self._database_uri = '{}://{}:{}@{}/{}'.format(
-             db_type, username, password, host or 'localhost', db)
-        elif db_type == 'sqlite':
-            self._database_uri = "sqlite:///{}.db".format(db)
+    def build_db_url(self):
+        if self.db_type in('mysql', 'postgres'):
+            self.database_uri = '{}://{}:{}@{}/{}'.format(
+                self.db_type, self.username, self.password,
+                self.host, self.db_name)
+        elif self.db_type == 'sqlite':
+            self.database_uri = "sqlite:///{}.db".format(self.db_name)
         else:
             raise SystemExit('Database not supported')
 
-    def database_engine(self):
+    def create_db(self):
         try:
-            if not database_exists(self.database_uri):
-                create_database(self.database_uri)
-            self.engine = create_engine(self.database_uri, echo=True)
+            if not sqlalchemy_utils.database_exists(self.database_uri):
+                sqlalchemy_utils.create_database(self.database_uri)
         except sqlalchemy.exc.OperationalError:
             raise SystemExit('Database authentication error')
 
-    def create_table(self):
-        if not self.engine.dialect.has_table(self.engine, 'users'):
-            User.metadata.create_all(self.engine)
+    def create_db_engine(self):
+        self.engine = sqlalchemy.create_engine(self.database_uri)
+
+    def create_db_table(self):
+        models.User.metadata.create_all(self.engine)
 
     def create_session(self):
-        Session = sessionmaker(bind=self.engine)
+        Session = sqlalchemy.orm.sessionmaker(self.engine)
         self.session = Session()
+
+    def check_proper_setup(self):
+        self.build_db_url()
+        self.create_db()
+        self.create_db_engine()
+        self.create_db_table()
+        self.create_session()
 
     def save_bulk_record_db(self, record_set):
         try:

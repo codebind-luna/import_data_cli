@@ -11,9 +11,10 @@ from db_connector import DbConnector
 @click.option('--hostname', default='', help='Username database')
 @click.password_option(default='')
 def import_and_save(file_path, db, database_type,
-                    username='', password='', hostname=''):
+                    username='', password='', hostname='localhost'):
     """Simple program that imports a csv file and save it to database."""
-    db_conn = DbConnector((database_type, db, username, password, hostname))
+    db_conn = DbConnector(database_type, db, hostname, username, password)
+    db_conn.check_proper_setup()
     file_importer = FileLoader.factory(file_path)
     file_importer.load_data(db_conn)
 
