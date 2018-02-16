@@ -1,8 +1,11 @@
-import os
 import csv
+import os
+
 from models import User
-import xlrd
+
 import pandas as pd
+
+import xlrd
 
 
 class FileLoader(object):
@@ -16,11 +19,10 @@ class FileLoader(object):
         filename, file_extension = os.path.splitext(path_to_file)
         try:
             return globals()[file_extension[1:].title() + "FileLoader"](
-             filename, file_extension
+                filename, file_extension
             )
         except KeyError:
-            print("File extension not supported")
-            exit()
+            raise SystemExit("File extension not supported")
 
     def create_user_instance(self, data):
         return User(**{'name': data[0], 'age': data[1], 'address': data[2]})

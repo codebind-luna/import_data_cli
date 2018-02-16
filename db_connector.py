@@ -1,7 +1,9 @@
-import sqlalchemy
-import sqlalchemy_utils
-import sqlalchemy.orm
 import models
+
+import sqlalchemy
+import sqlalchemy.orm
+
+import sqlalchemy_utils
 
 
 class DbConnector(object):
@@ -15,8 +17,8 @@ class DbConnector(object):
     def build_db_url(self):
         if self.db_type in('mysql', 'postgres'):
             self.database_uri = '{}://{}:{}@{}/{}'.format(
-                self.db_type, self.username, self.password,
-                self.host, self.db_name)
+                self.db_type, self.username,
+                self.password, self.host, self.db_name)
         elif self.db_type == 'sqlite':
             self.database_uri = "sqlite:///{}.db".format(self.db_name)
         else:

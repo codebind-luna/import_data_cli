@@ -1,6 +1,8 @@
 import click
-from file_loader import FileLoader
+
 from db_connector import DbConnector
+
+from file_loader import FileLoader
 
 
 @click.command()
