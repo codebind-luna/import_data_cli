@@ -6,6 +6,15 @@ import pytest
 import sqlalchemy.orm
 
 
+def test_db_connector_init():
+    connector = DbConnector('test', 'test', 'test', 'test', 'test')
+    assert connector.db_type == 'test'
+    assert connector.db_name == 'test'
+    assert connector.host == 'test'
+    assert connector.username == 'test'
+    assert connector.password == 'test'
+
+
 def test_build_db_url_postgres():
     connector = DbConnector('postgres', 'test_pg_db', 'localhost',
                             'my_user', 'my_pass')
@@ -150,6 +159,19 @@ def test_commit_is_called():
     users_record_set = []
     connector.save_bulk_record_db(users_record_set)
     connector.session.commit.assert_called_with()
+
+
+def test_save_bulk_record_db_raising_exceptions():
+    connector = DbConnector('mysql', 'test_mysql_db', 'localhost',
+                            'my_user', 'my_pass')
+    connector.session = sqlalchemy.orm.session.Session()
+    connector.session.bulk_save_objects = Mock(side_effect=sqlalchemy.exc.DBAPIError(None, None,
+         None, False, None))
+    with pytest.raises(SystemExit) as e:
+        connector.save_bulk_record_db([])
+        assert e.type == SystemExit
+        assert e.value.code == 42
+        assert e.value.message == 'Database Authentication Error'
 
 
 def test_check_proper_setup():
